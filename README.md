@@ -6,6 +6,7 @@ This is latest version of Maestro engine. There are too much significant changes
 ##Updates##
 
 1)new file structure:
+```
 root
 |- engine
 |	|- masterclass.php
@@ -40,6 +41,7 @@ root
 |	|- modules
 |	|	|- %modulename%.php
 |- index.php
+```
 
 2) initial tables\modules:
 * settings **also all system stuff like `update` or `install` goes through it; also here all stuff like `inactivemodules`**
@@ -85,7 +87,8 @@ include('autoload.php');
 checkLogged(); */
 $_PATH = route();
 $class = dispatch();	
-/** output **/	
+/** output **/
+``	
 if($class->ajax)
 	echo $class->output;
 else	
@@ -94,6 +97,7 @@ else
 		'class'		=> $class
 		)
 	);		
+```
 
 7) enhanced functionality:
 * to create query anywhere just call q(); +
@@ -135,6 +139,7 @@ users
 ###DBUPDATE : ###
 
 *Old*
+```
 module 
  'fields' - list of fields
 	array (
@@ -170,9 +175,10 @@ module
 			'unique' - is unique; DEFAULT FALSE;
 		)
 	)
+```
 
 * New example: *
-
+```
 $tables = [
 	'tablename' => [
 		'fields' => [
@@ -200,7 +206,7 @@ $tables = [
 in **module**_ini() {
 	install('tablename');
 }
-
+```
 
 
 
