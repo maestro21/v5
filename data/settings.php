@@ -8,3 +8,4 @@ define('HOST_FOLDER', 'v5');
 define('BASE_URL', HOST . HOST_FOLDER . '/');
 define('PUB_URL', HOST . HOST_FOLDER . '/www/');
 define('DEFMODULE', 'modules');
+define('DEFTHEME', 'greenlite');

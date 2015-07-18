@@ -32,7 +32,7 @@ class DBquery {
 	function select($query = '*', $shortname = '') {
 		$this->clear();
 		$this->queryType = 'select';	
-		if($query != '*') $query = str_replace('.','`.`',"`$query`");	
+		//if($query != '*') $query = str_replace('.','`.`',"`$query`");	
 		if ($shortname == '')
 			$this->parts['select'][] = $query;
 		else 
@@ -61,7 +61,7 @@ class DBquery {
 		return $this;
 	}
 	
-	function replace() {
+	function replace($table = null) {
 		$this->clear();
 		$this->queryType = 'insert';
 		$this->parts['insert'] = 'REPLACE';
@@ -202,7 +202,9 @@ class DBquery {
 	function qsave($params = array()) {
 		$this->requestType = self::DBQUERY;
 		if(sizeof($params > 0)) {
-			$this->replace()->into($this->table);
+			$this
+				->replace()
+				->into($this->table);
 			foreach ($params as $key => $value) {
 				$this->set($key, $value);
 			}
@@ -213,7 +215,9 @@ class DBquery {
 	function qadd($params = array()) {
 		$this->requestType = self::DBQUERY;
 		if(sizeof($params > 0)) {
-			$this->insert()->into($this->table);
+			$this
+				->insert()
+				->into($this->table);
 			foreach ($params as $key => $value) {
 				$this->set($key, $value);
 			}
@@ -226,8 +230,7 @@ class DBquery {
 		if(sizeof($params > 0)) {
 			$this
 				->update($this->table)
-				->where($cond);	
-				
+				->where($cond);				
 			foreach ($params as $key => $value) {
 				$this->set($key, $value);
 			}

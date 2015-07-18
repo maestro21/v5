@@ -1,10 +1,13 @@
 <?php class modules extends masterclass {
 
-	function extend() {
-		$this->tables = [
+	use Master;
+
+	function gettables() {
+		return
+		[
 			'modules' => [
 				'fields' => [
-					'name' 		=> [ 'string', 'string', 'search' => TRUE ],
+					'name' 		=> [ 'string', 'text', 'search' => TRUE ],
 					'active' 	=> [ 'bool', 'checkbox', 'null' => TRUE  ],
 					'installed' => [ 'bool', 'checkbox', 'null' => TRUE  ],
 				],
@@ -15,22 +18,24 @@
 		];	
 	}
 	
-	function admin() { 
+	function admin() {
 		if(hasRight($this->rights['admin'])) {
 			/** getting items from db **/
-			$items = $this->db->qlist()->un('limit')->run();
+			$items = q($this->cl)->qlist()->un('limit')->run();
 			/** getting real modules from module directory **/
 			$modules = scandir('www/modules');
 			unset($modules[0]);
 			unset($modules[1]);
-			foreach($modules as $k => $module) $modules[$k] = str_replace('.php','', $module);
+			foreach($modules as $k => $module) {
+				$modules[$k] = str_replace('module.','',str_replace('.php','', $module));
+			}
 			$modules = array_flip($modules);
 			/** running through db and assigning values to modules **/	
 			foreach($items as $item){
-				if(isset($moduels[$item['name']])) {
+				if(isset($modules[$item['name']])) {
 					$modules[$item['name']] = $item;
 				} else {
-					$this->db->qdel($item['id'])->run();
+					q($this->cl)->qdel($item['id'])->run();
 				}
 			}
 			/** running through modules; if module is not in db - adding it**/
@@ -41,8 +46,7 @@
 						'active' 	=> 0,
 						'installed' =>0,
 					);
-					$this->db->qadd($item)->run();
-					
+					q($this->cl)->qadd($item)->run();					
 					$modules[$k] = $item;
 				}
 			}		

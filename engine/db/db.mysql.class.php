@@ -32,7 +32,7 @@ class mysql extends dbquery {
 	}
 	
 	/** composing MySQL Select query **/
-	function composeSelectQuery(){
+	function composeSelectQuery(){ 
 		$this->rawQuery = 'SELECT ' . implode(",\r\n ", $this->parts['select'])  . "\r\n";
 		$this->rawQuery .= 'FROM ' . implode(',', $this->parts['from'])  . "\r\n";
 		if(isset($this->parts['where']) && is_array($this->parts['where'])) {
@@ -126,14 +126,14 @@ class mysql extends dbquery {
 	function run($type = NULL, $debug = 0) {
 		$this->compose();
 		if(NULL == $type) $type = $this->requestType; 
-		$result = FALSE;
+		$result = FALSE; 
 		switch($type) {
 			case self::DBCELL : $result = DBcell($this->rawQuery,  $debug); break; 
 			case self::DBROW : $result = DBrow($this->rawQuery,   $debug); break; 
 			case self::DBCOL : $result = DBcol($this->rawQuery,   $debug); break;
 			case self::DBALL : $result = DBall($this->rawQuery,   $debug); break; 
 			case self::DBQUERY : $result = DBquery($this->rawQuery, $debug); break; 			
-		}
+		} 
 		return $result;
 	}
 }

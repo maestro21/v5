@@ -1,8 +1,8 @@
 <?php 
 $globals = array(
-	'langs' 	=> array('en'),
+	'langs' 	=> 'en',
 	'deflang' 	=> 'en',
 	'sitename'	=> 'Sitename',
-	'theme'		=> 'default',
+	'theme'		=> 'maestro',
 	'defmodule'	=> 'pages',
 );

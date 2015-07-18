@@ -23,14 +23,49 @@ function debug($text=''){
 
 /** TEMPLATE FUNCTION **/
 
-function tpl($_TPL,$vars=array(),$adminmode=false){
-	$theme = (G('theme') == 'default'?'':G('theme'));	
-	if($theme !='' && file_exists("www/themes/$theme/tpl.$_TPL.php"))
-		$url = "www/themes/$theme/tpl.$_TPL.php";
-	else
-		$url = "www/tpl/tpl.$_TPL.php";
-	$tpl = false;	
-		
+/**
+	Main function to display template; 	
+	Can be called -anywhere- in code.
+	
+	@$_TPL string - path to template;
+	@$vars array - template variables;
+	@return string - parsed tempate html;
+**/
+function tpl($_TPL, $vars=array()){
+	/** 
+		Defining template to choose; 
+		If it has format class/method then class/tpl.method.php would be included;
+		If it is basic template (i.e. `index`) then just tpl.method.php would be included;
+	**/
+	@list($class, $method) = explode('/',$_TPL); 
+	if($method == '') {
+		$method = $class; 
+		$class = '';
+	}	
+	/** 
+		Priority of template:
+		1. Theme class method tpl
+		2. Theme default view method tpl
+		3. Default theme class method tpl
+		4. Default theme default view method tpl	
+		5. Otherwise return 404 not found.
+	**/
+	$theme = (G('theme') != '' ? G('theme') : DEFTHEME); 
+	if(file_exists("www/themes/{$theme}/tpl/{$class}/tpl.{$method}.php")) {
+		$url = "www/themes/{$theme}/tpl/{$class}/tpl.{$method}.php";
+	} elseif(file_exists("www/themes/{$theme}/tpl/default/tpl.{$method}.php")) {
+		$url = "www/themes/{$theme}/tpl/default/tpl.{$method}.php";
+	} elseif(file_exists("www/themes/" . DEFTHEME . "/tpl/{$class}tpl.{$method}.php")) {
+		$url = "www/themes/" . DEFTHEME . "/tpl/{$class}/tpl.{$method}.php";
+	} elseif(file_exists("www/themes/" . DEFTHEME . "/tpl/{$class}tpl.{$method}.php")) {
+		$url = "www/themes/" . DEFTHEME . "/tpl/{$class}/tpl.{$method}.php";
+	} else {
+		return '<h3>' . T('404 not found') . '</h3>';
+	}	
+	
+	/**	
+		Parsing template variables and returning parsed template
+	**/	
 	if($url){	
 		foreach ($vars as $k =>$v){  
 			if(!is_array($v) && !is_object($v))
@@ -42,33 +77,46 @@ function tpl($_TPL,$vars=array(),$adminmode=false){
 		ob_start(); 	
 		include($url); 
 		$tpl = ob_get_contents(); 
-		ob_end_clean(); 
-	
+		ob_end_clean();	
 	}
+	
 	return $tpl;	
+}
+
+/**
+	Returns file url based on theme
+**/
+function furl() {
+	$theme = (G('theme') != '' ? G('theme') : DEFTHEME); 
+	return PUB_URL . 'themes/' . $theme . '/';
 }
 
 /** MAIN FUNCTIONS **/
 
-function g($text){
+/** $_GLOBALS[$name] getters\setter **/
+function G($name, $value = NULL) {
 	global $_GLOBALS;
-	return (isset($_GLOBALS[$text]) ? $_GLOBALS[$text] : NULL);
+	if($value != NULL) $_GLOBALS[$name] = $value;
+	return (isset($_GLOBALS[$name]) ? $_GLOBALS[$name] : NULL);
 }
 
-function t($text) {
+/* Formats text */
+function T($text, $ucfirst = true) {
 	global $labels;
-	return (@$labels[$text]!='' ? $labels[$text] : $text);
+	$text = (isset($labels[$text]) ? $labels[$text] : $text);
+	if($ucfirst) $text = ucfirst($text);
+	return $text;
 }
 
 function M($module) {
 	global $masterclass;
 	$filename = 'www/modules/module.' . $module . '.php';
 	require_once('engine/class.masterclass.php');
-	if(file_exists($filename)) include($filename);
+	if(file_exists($filename)) require_once($filename);
 	return new $module();
 }
 
-/* function q() is defined directly in [dblanguage].php (i.e. mysql.php) **/
+/** function q() is defined directly in [dblanguage].php (i.e. mysql.php) **/
 
 /** FORMAT FUNCTIONS **/ 
 function parseString($string) {
@@ -147,7 +195,7 @@ function setFilter(){
 
 function getLang(){
 	global $labels;
-	$tmp = file("lang/".getVar('lang',G('deflang','ua')).".txt"); // print_r($tmp);
+	$tmp = file("lang/".getVar('lang',G('deflang','ua')).".txt");
 	foreach($tmp as $s){
 		$_s = split("=",$s); $label = $_s[0]; unset($_s[0]); $text = join("=",$_s);
 		$labels[trim($label)] = trim($text);
@@ -178,7 +226,8 @@ function filterImg($class,$field){
 }
 
 
-/** URL fuctions  **/
+/** URL redirect fuctions  **/
+
 function redirect($to,$time=0){
 	$to = str_replace('#','',$to);
 	echo "<html><body><script>setTimeout(\"location.href='$to'\", {$time}000);</script></body></html>";
@@ -190,7 +239,11 @@ function goBack(){
 }
 
 
-/*** MISC ***/
+/*** 
+	
+	MISC 
+	
+***/
 
 function doLogin(){
 	$sql = "SELECT * from users where login='".getPost('login')."' AND pass=md5('".getPost('pass')."')"; 
@@ -210,7 +263,7 @@ function doLogout(){
 
 
 function getModules(){
-	return DBcol("SELECT url FROM modules WHERE isactive");
+	return M('modules')->cache();
 }
 
 /** DATA fuctions **/
@@ -235,142 +288,65 @@ const DB_INT 	= 'int';
 const DB_DATE 	= 'date';
 const DB_FLOAT 	= 'float';
 
+
 function drawForm($fields,$data,$options){  
-    $ret = '';
-	$prefix = 'form';
-    foreach($fields as $k=>$v)
-    {
-	
-		$class = "info";
-		$return = "";
-		switch (@$v['widget']){
-			case WIDGET_TEXT:
-				$return .="<input type=text value='".@$data[$k]."' name='{$prefix}[$k]' id='$k' />";
-			break;
-			
-			case WIDGET_TEXTAREA:
-				$class = "tainfo";
-				$return .="<textarea cols=100 rows=20 name='{$prefix}[$k]' id='$k'>".@$data[$k]."</textarea>";
-			break;
-			
-			case WIDGET_HTML:
-				$class = "tainfo";
-				$return .="<textarea cols=100 rows=20 name='{$prefix}[$k]' id='$k'>".@$data[$k]."</textarea>".
-				"<script type='text/javascript'>
-					CKEDITOR.replace( '$k' );
-				</script>
-				";				
-			break;			
-			
-			case WIDGET_BBCODE:
-				$class = "tainfo";
-				$return .="<textarea cols=100 rows=15 name='{$prefix}[$k]' id='$k'>".@$data[$k]."</textarea>".
-							"<script type='text/javascript'>
-								CKEDITOR.config.toolbar_Full = [
-									['Source'],
-									['Undo','Redo'],
-									['Bold','Italic','Underline','-','Link', 'Unlink'], 
-									['Blockquote', 'TextColor', 'Image'],
-									['SelectAll', 'RemoveFormat']
-								] ;
-								CKEDITOR.config.extraPlugins = 'bbcode';
-								//<![CDATA['
-									var sBasePath = document.location.pathname.substring(0,document.location.pathname.lastIndexOf('plugins')) ;
-									var CKeditor = CKEDITOR.replace( '$k', { 
-																	customConfig : sBasePath + 'plugins/bbcode/_sample/bbcode.config.js'
-															}  );
+	return tpl('form', array( 'data' => $data, 'fields' => $fields, 'options' => $options));
+}
 
-								//]]>									
-							</script>";
-			break;			
-			
-			case WIDGET_PASS:
-				$return .="<input type=password value='' name='{$prefix}[$k]' id=$k />";
-			break;
-	
-			case WIDGET_HIDDEN:
-				$return .="<input type=hidden value='".@$data[$k]."' name='{$prefix}[$k]' id=$k />";
-			break;
-			
-			case WIDGET_CHECKBOX:
-				$return .="<input type=hidden name='{$prefix}[$k]' value=''><input type=checkbox  value=1 ".(@$data[$k]==1?"checked":"")." name='{$prefix}[$k]' id=$k />
-		";
-			break;
-			
-			case WIDGET_RADIO:
-				foreach (@$options[$k] as $kk => $vv){
-					$return .=T($vv)." <input type='radio' name='{$prefix}[$k]' value='$kk' ".($kk==@$data[$k]?' checked':'')." />";
-				}
-			break;
-			
-			case WIDGET_SELECT:
-				$return .="<select name={$prefix}[$k] id=$k>";
-				foreach (@$options[$k] as $kk => $vv){
-					$return .="<option value='$kk'".($kk==@$data[$k]?' selected="selected"':'').">".T($vv)."</option>";
-				}
-				$return .="</select>";
-			break;        
-
-			case WIDGET_MULTSELECT:
-				$class = "tainfo";
-				$return .="<select multiple name={$prefix}[$k][] id=$k>";
-				$dat = array_flip(explode(',',@$data[$k]));
-				foreach (@$options[$k] as $kk => $vv){
-					$return .="<option value='$kk'".(isset($dat[$kk])?' selected="selected"':'').">".T($vv)."</option>";
-				}
-				$return .="</select>";
-			break;     
-
-			case WIDGET_DATE:
-				preg_match_all("/[[:digit:]]{2,4}/",@$data[$k],$matches);	
-				$nums = $matches[0]; 
-				$return .="<input type='text' class='date year' name={$prefix}[$k][y] value='".(isset($nums[0])?$nums[0]:date('Y'))."' size=4>-";
-				$return .="<select name={$prefix}[$k][m]>"; if(!isset($nums[1])) $nums[1] = date('m');
-				for($i=1;$i<13;$i++) $return .= "<option value='$i'".($i==@$nums[1]?' selected="selected"':'')."'>".T("mon_$i")."</option>";			
-				$return.="</select>-";
-						
-				$return .="<input type='text' class='date' name={$prefix}[$k][d] value='".(isset($nums[2])?$nums[2]:date('d'))."' size=2> &nbsp&nbsp&nbsp";
-				$return .="<input type='text' class='date' name={$prefix}[$k][h] value='".(isset($nums[3])?$nums[3]:date('G'))."' size=2>:";
-				$return .="<input type='text' class='date' name={$prefix}[$k][mi] value='".(isset($nums[4])?$nums[4]:date('i'))."' size=2>:";
-				$return .="<input type='text' class='date' name={$prefix}[$k][s] value='".(isset($nums[5])?$nums[5]:date('s'))."' size=2>(HH:MM:SS)";
-			
-			break;
-
-			case WIDGET_CHECKBOXES:
-				$class = "tainfo";
-				$return .="<div>";
-				$i = 0; 
-				$dat = array_flip(split(',',@$data[$k]));// inspect($dat);
-				foreach (@$options[$k] as $kk => $vv){
-					if($i % 10 == 0){ $return .="</div><div style='float:left;border:1px black solid;'>"; }// var_dump(isset($dat[$kk]));
-					$return .="<p><input type='checkbox' value='$kk' name='{$prefix}[$k][]'".(isset($dat[$kk])?' checked':'').">".T($vv)."</p>";
-					$i++;
-				}
-				$return .="</div>";
-			break;				
-			
-		}
+function fType($value, $type, $options = null, $fieldname = null) {
+	switch($type) {
+		case WIDGET_TEXT:
+		case WIDGET_TEXTAREA:
+		case WIDGET_HTML:
+		case WIDGET_BBCODE:
+			return $value;
+		break;
 		
-		switch (@$v['widget']) {			
-			case 'none':
-			break;				
-			case 'hidden':
-				$ret .= $return;
-			break;				
-			default:
-				$ret .="<tr><td id='descr_$k' class='$class'>".T($k)."</td><td class='data'>$return</td></tr>";
-			break;				
-		}
+		case WIDGET_PASS:
+			if(!$fieldname) return '*****';
+		break;
+		
+		case WIDGET_HIDDEN: 
+			return; 
+		break;
+		
+		case WIDGET_CHECKBOX:
+			if($fieldname)
+				return (!(bool)$value ?  T('not') : '') . ' ' . T($fieldname);
+			else
+				return ((bool)$value ? T('yes') : T('no'));
+		break;
+		
+		case WIDGET_RADIO:
+		case WIDGET_SELECT:
+			return (isset($options[$value])? $options[$value] : $value);
+		break;
+		
+		case WIDGET_DATE:
+			return fDate($value);
+		break;
+		
+		case WIDGET_CHECKBOXES:		
+		case WIDGET_MULTSELECT:
+			$values = explode(',',$value);
+			foreach($values as $k =>  $val) {
+				if(isset($options[$val])) {
+					$values[$k] = $options[$val];
+				}
+			}
+			$result = implode(',', $values);
+			if($fieldname) $result = T($fieldname . 's') . ': ' . $result;
+			return $result;
+		break;
 	}
-	return $ret;    
 }
 
 
 function chkz($int){
-	if($int<10) return '0'.$int;
+	if($int < 10) return '0'.$int;
 }
 
- function sqlFormat($type, $value){
+function sqlFormat($type, $value){
 	switch($type){
 		case 'int': $value = intval($value);
 		break;
@@ -415,14 +391,14 @@ function CheckLogged(){
 	return isset($_SESSION['user']);
 }
 
-function treeDraw($data,$tpl='', $eval = ''){
+function treeDraw($data, $tpl='', $eval = ''){
 	$ret = '';
 	foreach ($data as $k => $row){ 
 		if($eval !='') eval($eval);
 		inspect($row);
 		$_T = $tpl; //echo $_T;
 		if($row['children']!='')
-			$row['children'] =treeDraw($row['children'],$tpl);
+			$row['children'] = treeDraw($row['children'],$tpl);
 			
 		foreach ($row as $kk => $vv){
 			$_T = str_replace('%'.$kk, $vv, $_T);
@@ -442,12 +418,7 @@ function fDate($date){
 
 function getGlobals(){
 	global $_GLOBALS;
-	$res = DBAll("SELECT * FROM globals");
-	foreach ($res as $row){
-		//inspect($row); echo $row['descr'] . ' ' .$row['value'];
-		$_GLOBALS[$row['name']] = $row['value'];
-	}
-	//inspect($_GLOBALS);
+	$_GLOBALS = cache('system');
 }
 
 
@@ -620,10 +591,10 @@ function rus2url($st)
 		 );
 }
 
-
+/** Cache getter\setter **/
 function cache($name, $data = NULL) {
 	$filename = 'data/cache/' . $name . '.php';
-	if(NULL !== $data) {
+	if(NULL !== $data) { 
 		file_put_contents($filename, '<?php $' . $name .' = ' . var_export($data, TRUE) . ";" ) ;
 	} elseif(file_exists($filename)) {
 		include($filename);
@@ -635,18 +606,18 @@ function cache($name, $data = NULL) {
 
 /** checking if our engine is installed; `globals` and `modules` are the only crucial modules, both cached, so if no cache exists, engine is not installed **/
 function installationCheck() {
-	if ((NULL == cache('system')) || (NULL == cache('modules'))) {
-		$modules = array('system', 'modules');
-		foreach($modules as $module) {
+	$modules = array('system', 'modules');
+	foreach($modules as $module) {
+		if(NULL == cache($module)) { echo $module;
 			M($module)->call('install');
 			M($module)->call('cache');
-		}	
+		}
 	}
 }
 
 function hasRight($rightname) {
 	global $_RIGHTS;
-	return(isset($_RIGHTS[$rightname]));	
+	return true; //(isset($_RIGHTS[$rightname]));	
 }
 
 
@@ -654,13 +625,6 @@ function route() {
 	global $_SERVER, $_GET;
 	
 	$vars = explode('?', $_SERVER['REQUEST_URI']);
-
-	/* dispatching GET params */
-	if(isset($vars[1]) && count($vars[1]) > 0) {
-		foreach($vars[1] as $k => $v) {
-			$_GET[$k] = $v;
-		}		
-	}
 	$path = mapping($vars[0]);
 	$path = trim(ltrim($path,'/' . HOST_FOLDER), '/');
 	$_PATH = explode('/', $path);
@@ -673,20 +637,21 @@ function mapping($path) {
 	foreach ($mapping as $k => $v){
 		$path = ereg_replace($k,$v,$path);
 	}
+	return $path;
 }
 
 
 function dispatch() {
 	global $_PATH;
 	
-	$cl = $_PATH[0]; 
+	$cl = $_PATH[0];
 	if($cl=='filter'){ setVar(@$_PATH[1], @$_PATH[2]); goBack(); die(); }
 	
-	if(!file_exists('modules/module.' . $cl . '.php')){
+	if(!file_exists('www/modules/module.' . $cl . '.php')){
 		$cl = DEFMODULE;
 	}
 	$module = M($cl);
-	$module->call(@$_PATH[1]);
+	$module->output = $module->call(@$_PATH[1]);
 	return $module;	
 }
 
@@ -698,9 +663,29 @@ function loadDB($dbname = '') {
 }
 
 
+function themePath() {
+	$theme = (G('theme') != '' ? G('theme') : DEFTHEME); 	
+	return BASE_URL . 'www/themes/' . $theme . '/';
+}
+
 /*
 function checkLogged() {
 	global $_SESSION, $_SERVER;
 	if(!$_SESSION['logged']) $_SERVER['REQUEST_URI'] = 'users/login';
 }*/
-?>
+
+
+function drawBtns($buttons, $params = array()) {
+	$html = '';
+	if(is_array($buttons) && sizeof($buttons > 0)) {
+		foreach($buttons as $button => $text) {
+			if(is_array($params) && sizeof($params > 0)) {
+				foreach($params as $k => $v) {
+					$button = str_replace('{' . $k . '}', $v);
+				}
+			}
+			$html .= "<a href='$button' class='btn'>" . T($text) . "</a>";
+		}
+	}
+	return $html;
+}

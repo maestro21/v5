@@ -16,6 +16,6 @@ installationCheck();
 require_once(BASE_PATH . 'engine/class.masterclass.php');
 
 
-//getGlobals();
+getGlobals();
 //getLangs();  
 

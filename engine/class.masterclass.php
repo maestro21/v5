@@ -1,6 +1,6 @@
 <?php
 require_once("db/db." . DB_TYPE . ".class.php");
-class masterclass{
+abstract class masterclass{
 	
 	/** default field for a field type in table **/
 	const FIELDTYPE = 1;
@@ -36,22 +36,24 @@ class masterclass{
 		$this->params['files'] 		= & $_FILES;
 		
 		/** Class routing parameters **/
-		$this->className= ($className != '' ? $className : (@$this->path[0] != '' ? $this->path[0] : get_class($this)));
+		$this->cl = $this->className = ($className != '' ? $className : (@$this->path[0] != '' ? $this->path[0] : get_class($this)));
+
 		$this->id 		= (isset($this->post['id']) ? $this->post['id'] : @$this->path[2]);
 		$this->page 	= (int)@$this->path[2];
 		$this->search 	= @$this->path[3];
 		$this->defmethod = 'items'; 
 		
 		/** Database **/
-		$this->db 		= new MySQL($this->className);
+		//$this->db 		= q($this->className);
 		
 		/** Class data parameters **/
-		$this->tables 	= NULL;
+		$this->perpage 	= 20;
+		$this->tables	= $this->gettables();
 		$this->options	= NULL;
 		$this->parse	= TRUE;
-		$this->ajax		= FALSE;
+		$this->ajax		= (isset($this->get['ajax']));
 		$this->data		= NULL;
-		$this->fields 	= $this->tables[$this->className];	
+		$this->fields 	= $this->tables[$this->cl]['fields'];	
 		$this->rights 	= array(
 			'admin' => 'admin',
 			'add'	=> 'admin',
@@ -62,11 +64,10 @@ class masterclass{
 		
 		
 		/** Class template parameters **/
-		$this->tpl 		= (file_exists( "tpl/".$this->className.".html") ? $this->className : $this->tpl);		
-		$this->title 	= ($this->id!=''?T(S($this->className)) .' #'.$this->id:T($this->className));
+		$this->title 	= ($this->id!=''? T($this->cl) .' #'.$this->id : T($this->cl));
 		$this->buttons = array(
-			'admin' => array( 'items' => 'list', 'item' => 'add' ),
-			'view'  => array( 'items' => 'list', 'item/'.$this->id => 'edit' ),
+			'admin' => array( 'add' => 'add new' ),
+			//'view'  => array( 'items' => 'list', 'item/'.$this->id => 'edit' ),
 			'table' => array( 'item/{id}' => 'edit',  'view/{id}' => 'view', ),
 		);	
 		
@@ -74,34 +75,16 @@ class masterclass{
 		$this->extend();		
   	}
 	
-	
-	/** 
-		Calls a method and parses output if needed
-		@param $method - name of method
-		@param $args - arguments to pass
-		@return NULL | string | mixed data
-	**/
-	function call($method = '', $args = array()) {
-		if(!method_exists($this, $method)) { 
-			$method = $this->defmethod;
-		}	
-		$this->data = call_user_func_array(array($this, $method), $args); 		
+	abstract function getTables();
 		
-		if($this->parse) {
-			$this->tpl = $method;
-			$this->data = $this->parse();
-		}
-		return $this->data;
-	}
-	
-	
+		
 	/** 
 		Returns information about fields of a table
 		@param $table - name of a table 
 		@return NULL | array();
 	**/
-	function getFields($table = NULL) {	
-		if(NULL == $table) $table = self::className;
+	public function getFields($table = NULL) {	
+		if(NULL == $table) $table = self::cl;
 		if(isset($this->tables[$table])) {
 			return $this->tables[$table]['fields'];
 		}
@@ -113,9 +96,9 @@ class masterclass{
 		Admin method for class data listing
 		@return array() or FALSE;
 	**/
-	function admin() {
+	public function admin() {
 		if(hasRight($this->rights['admin'])){
-			return items();
+			return $this->items();
 		}
 		return FALSE;
 	}	
@@ -124,9 +107,9 @@ class masterclass{
 		Default method for class data listing
 		@return array() or FALSE;
 	**/
-  	function items() {
-		$oQuery = $this->db->glist();
-		$oCountQuery = $this->db->gcount();
+  	public function items() { 
+		$oQuery 		= q($this->cl)->qlist(); 
+		$oCountQuery 	= q($this->cl)->qcount();
 		
 		/* Applying search **/
 		if($this->search!=''){
@@ -137,96 +120,120 @@ class masterclass{
 				}
 			}		
 		}
-		$this->pageCount = ceil(DBfield($oCountQuery->run()) / $this->perpage);	
+		$this->pageCount = ceil($oCountQuery->run() / $this->perpage);	
 		
 		/** Applying sort filter **/
-		$filter = explode("_", getVar('sort_' . $this->className)); 
+		$filter = explode("_", getVar('sort_' . $this->cl)); 
 		if(isset($this->fields[$filter[0]]) && ($filter[1]=='ASC' || $filter[1] == 'DESC')) {
 			$oQuery->order($filter[0] . ' ' . $filter[1]);
 		}
-		
+
 		return $oQuery->run();
   	}
 
 
 	/** Opens form for adding new element **/
-	function add() {
-		if(!hasRight($this->rights['add'])) redirect(BASE_PATH . $this->className);
+	public function add($data = NULL) {
+		$this->tpl = 'addedit';  
+		return array('data' => $data, 'fields' =>$this->fields, 'options'=> $this->options);
 	}	
 	
 	/** Retrieves data of a single element for edit **/
-    function edit($id = NULL) {	
-		if(hasRight($this->rights['edit'])){
-			return $this->view($id);
-		}
-		redirect(BASE_PATH . $this->className);
+    public function edit($id = NULL) { 
+		return $this->add($this->view($id));
+
     }	
 	
 	/** Retrieves data of a single element for view **/
-    function view($id = NULL) {
+    public function view($id = NULL) {
 		if(NULL == $id) $id = $this->id;
-		return $this->db->qget($id)->run();
+		return q($this->cl)->qget($id)->run();
     }     
 
      
     /** Save element **/
-    function save() {
-		if(hasRight($this->rights['save'])){
-			/* Determines query type; 
-			Update if element exists, insert if it`s a new element **/
-			if($this->id > 0) {
-				$oQuery = $this->db->qsave();
-			} else {
-				$oQuery = $this->db->qedit();
-			}			
-			/** Setting values for table fields **/
-			foreach ($this->post['form'] as $k=>$v) {
-				if(isset($this->fields[$k])) {
-					if($this->fields[$k]['type']=='pass' && trim($v)=='') continue;
-					$oQuery->set($k, sqlFormat($this->fields[$k][FIELDTYPE], $v));
-				}
-			}			
-			/** Executing query, retrieving id, returning result **/	
-			$oQuery->run();
-			if($this->id < 1) $this->id = DBinsertId();
-			$this->parse = FALSE; 
-			$this->ajax = TRUE;
-			return json_encode(array('id' => $this->id));
+    public function save() { 
+		$this->parse = FALSE; 
+		/* Determines query type; 
+		Update if element exists, insert if it`s a new element **/
+		if($this->id > 0) {			
+			$oQuery = q($this->cl)->qedit($this->post['form'], dbEq('id',$this->id));
+		} else {
+			$oQuery = q($this->cl)->qadd($this->post['form']);
+		}		
+		/** Executing query, retrieving id, returning result **/	
+		$oQuery->run();
+		if($this->id < 1) {
+			$this->id = DBinsertId();
+			return json_encode(array('redirect' => BASE_URL . $this->cl . '/edit/' . $this->id));			
 		}
-		return json_encode(array('error' => 'access_denied'));
-    }
+		return json_encode(array('id' => $this->id));
+	 }
 
      
     /** Delete element **/
-    function del($id = NULL) {
-		if(hasRight($this->rights['admin'])){
-			if(NULL == $id) $id = $this->id;
-			$this->db->qdel($id)->run();
-			$this->parse = FALSE; 
-			$this->ajax = TRUE;
-			return json_encode(array('id' => $this->id));
-		}
-		return json_encode(array('error' => 'access_denied'));
+    public function del($id = NULL) {
+		if(NULL == $id) $id = $this->id;
+		q($this->cl)->qdel($id)->run();
+		$this->parse = FALSE; 
+		return json_encode(array('redirect' => 'reload'));
     }
 	
 	
 	/** Renders class output **/
-	function parse() { 
-		return tpl( $this->className . '/' . $this->tpl , $this->params);
+	public function parse() {
+		return tpl( $this->className . '/' . $this->tpl , array_merge($this->params, $this->data));
     }
 	
          
     /** Class installation method **/ 
-    function install() { install($this->tables); }
+    public function install() { install($this->tables); }
 
 	
 	/** Virtual method for class extension **/
-	function extend(){}		
+	public function extend(){}		
 	
 	
 	/** Caches data **/
-	function cache() {
-		cache($this->className, $this->db->qlist()->run());
+	public function cache() {
+		cache($this->className, q($this->cl)->qlist()->run());
 	}
 	
+}
+
+
+/** 
+	Trait for compatibility so that Masterclass->call() function would call child method instead of parent;
+**/
+trait Master {
+	/** 
+		Calls a method and parses output if needed;
+		All methods should be called that way.
+		@param $method - name of method
+		@param $args - arguments to pass
+		@return NULL | string | mixed data
+	**/
+	public function call($method = '', $args = array(), $parse = TRUE) {
+		if(!method_exists($this, $method)) { 
+			$method = $this->defmethod;
+		}		
+		/* Checking for rights */
+		if(isset($this->rights[$method]) && !hasRight($this->rights[$method])) {
+			if($this->ajax) {
+				json_encode(array('error' => 'access_denied'));
+			} else {	
+				redirect(BASE_PATH);
+			}
+		}
+		$this->tpl = $method;
+		/* Calling function */
+		$this->data = call_user_func_array(array($this, $method), $args); 		
+		/* Parsing output if needed */
+		if($this->parse && $parse) {
+			$this->data = $this->parse();
+		}
+		return $this->data;
+	}
+	
+
 }

@@ -1,8 +1,7 @@
 <?php 
-
 /** DATABASE FUNCTIONS **/
 function q($table = '') {
-	return new dbMySQL($table);
+	return new MySQL($table);
 }
 
 function DBconnect()
@@ -26,10 +25,19 @@ function DBselDB(){
 		mysql_query("SET CHARACTER SET 'UTF8'");
 }
 
-function DBquery($sql, $echo = false)
-{
-	if($echo) print $sql;
-	$res = mysql_query($sql,HOST_LINK) or die(mysql_error() . ' '.$sql);
+function DBquery($sql, $echo = true)
+{	
+	$echo = 1;
+	$res = mysql_query($sql,HOST_LINK);
+	if(!$res) {
+		if($echo) {
+			echo $sql . "<br>";
+			echo mysql_error();			
+			echo "<pre>";
+			print_r(debug_backtrace());
+		}
+		die();
+	}
 	return $res;	
 }
 
@@ -56,21 +64,19 @@ function DBcol($sql, $echo = false)
 }
 
 function DBall($sql, $echo = false)
-{
+{	
 	$arr = Array();
 	$res = DBquery($sql, $echo);
-	//print_r($res);
 	if($res){
 		while ($row = @mysql_fetch_assoc($res)) $arr[] = striprow($row);
 		@mysql_free_result($res);	
-		//print_r($arr);
 		return $arr;
 	}else
 		return false;
 }
 
 function DBfield($sql, $echo = false)
-{
+{	
 	$res = DBquery($sql, $echo);
 	if($res){
 		$arr = stripslashes(@mysql_result($res,0));	
@@ -84,7 +90,7 @@ function DBcell($sql, $echo = false){
 	return DBfield($sql, $echo); }
 
 function DBnumrows($sql, $echo = false) //select
-{
+{	
 	$res = DBquery($sql, $echo);
 	if($res){
 		$arr = mysql_num_rows($res);	
@@ -123,7 +129,7 @@ function DBfields($sql, $echo = false){ //returns fields
 
 /** DB operators **/
 function dbCount($field = '*', $as = ''){
-	return "COUNT({$field})" . ($as !='' ? ' AS ' . $as : '');
+	return "COUNT({$field})" . ($as != '' ? ' AS ' . $as : '');
 }
 /* type : 1 - %var 2 - var% 3 - %var% */
 function dbLike($value, $type = 3) {
@@ -148,7 +154,7 @@ function dbEq($key, $value) {
 
 /** DB schema functions **/
 function install($tables) {
-	/** running through all tables **/
+	/** running through all tables **/ 
 	foreach($tables as $table_name => $table) {
 		/** droping first; it's new install, so old table means to be dropped if exists **/
 		$sql = "DROP TABLE IF EXISTS `$table_name`"; DBquery($sql);
@@ -217,7 +223,7 @@ function install($tables) {
 		$sql.=	");";
 		
 		/* executing query **/
-		DBquery($sql);
+		DBquery($sql,true);
 	}
 }
 

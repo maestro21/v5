@@ -1,10 +1,15 @@
-<div class="maestro">
+<div class="adminpanel">
 	<div class="wrap">		
 		<ul class="dropdown">
 			<li><a href="modules">Modules</a>
-				<ul class="sub_menu">
-        			 <li><a href="modules">Modules</a></li>
-				</ul>
+				<?php $modules = cache('modules'); 
+				if($modules) {?>
+					<ul class="sub_menu">
+						<?php foreach($modules as $module) { ?>
+							<li><a href="<?php echo BASE_URL . $module['name'];?>/admin"><?php echo T($module['name']);?></a></li>
+						<?php } ?>	
+					</ul>
+				<?php } ?>
 			</li>		
 		</ul>
 	</div>

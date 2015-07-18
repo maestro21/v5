@@ -55,7 +55,6 @@ h1 img {
 
 h1, h2 {
 	font-family: Georgia;
-	display: inline-block;
 }	
 
 h2 {
@@ -132,7 +131,7 @@ a:hover{
 	.item div {
 		display:inline-block;
 		padding:0px 5px;
-		height: 100px;
+		/* height: 100px; */
 	}
 	
 	.info {
@@ -180,11 +179,21 @@ a:hover{
 	background-color:black;
 	color: white;
 	padding:5px;
+	height:20px;
 }	
 
 	.adminpanel a{
 		color: white;
 	}	
+	
+	.adminpanel li {
+		background-color:black;
+	}
+	
+	.adminpanel .dropdown{
+		padding:0px;
+		margin:0px;
+	}
 
 .content table td {
 	padding:5px;
@@ -492,7 +501,7 @@ text-decoration:none;
 /* /index slider */
 
 
-.done {
+.ok {
 	border: 1px darkgreen solid;
 	background-color: lightgreen;
 }
@@ -507,141 +516,60 @@ text-decoration:none;
 	background-color: #FFFF99;
 }
 
+.btn,
 .far {
 	border: 1px darkgray solid;
 	background-color: lightgray;
 }
 
-.done,
+.ok,
 .actual,
 .far,
+.btn,
 .not {
 	padding:10px;
 	margin:10px;
 	font-size:12px;
+	text-align:center;
 }
 
 .actual b,
 .not b,
 .far b,
-.done b{
+.ok b{
 	font-size:14px;
 }
 
 
-/** **/
-
-/* Admaestrotian */
- 
-.maestro { height:20px;
-	background-color:black;
-	-webkit-box-shadow: 0px 0px 2px 2px rgba(50, 50, 50, 0.75);
-	-moz-box-shadow:    0px 0px 2px 2px rgba(50, 50, 50, 0.75);
-	box-shadow:         0px 0px 2px 2px rgba(50, 50, 50, 0.75);
-} 
-
-.maestro div {
-	background-color:black;
+.list .item {
+	display:block;
 }
 
-.maestro  a{
-	color:white;
-	text-decoration:none;
-}
 
-.admdropdown{
-    color: white;
-    font-size: 14px;
-    text-align: left;
-    top: 5px;
-	display: table-cell;
-	vertical-align:middle;
-	padding-right:20px;
-}
-
-.admdropdown a:hover{
-	color:#fff;
-}
-
-.dropdownmenu{
-	position:absolute;
-	float:right;
-	background-color: white;
+.btn {
+	display:inline-block;
+	cursor:pointer;
+	-webkit-border-radius: 3px;
+	-moz-border-radius: 3px;
 	border-radius: 3px;
-	border-color: rgba(100, 100, 100, 0.219608);
-	box-shadow: rgba(0, 0, 0, 0.247059) 0px 3px 8px 0px;
-	text-align:left;
-	z-index:9999;
-	display:none;
-	padding: 5px;
-	margin-top: 8px; 
+	color:black;
+	text-decoration:none;
+	font-weight:bold;
 }
 
-.dropdownmenu a{
-	color: #3e3e3e;
-	background-color: white;
-	display: block;
-	padding: 5px;								
-	font-size: 14px;
-	margin-right: 0px !important;
-}
-.dropdownmenu a:hover{
-	background-color: #3e3e3e;
+.btn:hover {
+	background-color:green;
 	color:white;
 }
 
-.logout {
-	float:right;
-	margin-top: -6px;
-}
-
-.maestro  img{
-	margin-top:5px;
-}
-
-.maestro .arr {
-	margin:3px;
-}
-
-.maestro .logo {
-	padding-right:40px;
+.hidden{
+	display:hidden;
 }
 
 
-/** dropdown **/
+.admin h1 ,
+form {
+	display:inline-block;
+}
 
 
-.maestro a  {text-decoration: none; }
-.maestro ul { list-style: none; }
-.maestro p  { margin: 15px 0; }
-
-/* 
-	LEVEL ONE
-*/
-ul.dropdown                         { position: relative; }
-ul.dropdown li                      { font-weight: bold; float: left; zoom: 1; background: #ccc; }
-ul.dropdown a:hover		            { color: #000; }
-ul.dropdown a:active                { color: #ffa500; }
-ul.dropdown li a                    { display: block; padding: 4px 8px; border-right: 1px solid #333;
-	 								  color: #222; }
-ul.dropdown li:last-child a         { border-right: none; } /* Doesn't work in IE */
-ul.dropdown li.hover,
-ul.dropdown li:hover                { background: #F3D673; color: black; position: relative; }
-ul.dropdown li.hover a              { color: black; }
-
-
-/* 
-	LEVEL TWO
-*/
-ul.dropdown ul 						{ width: 220px; visibility: hidden; position: absolute; top: 100%; left: 0; }
-ul.dropdown ul li 					{ font-weight: normal; background: #f6f6f6; color: #000; 
-									  border-bottom: 1px solid #ccc; float: none; }
-									  
-                                    /* IE 6 & 7 Needs Inline Block */
-ul.dropdown ul li a					{ border-right: none; width: 100%; display: inline-block; } 
-
-/* 
-	LEVEL THREE
-*/
-ul.dropdown ul ul 					{ left: 100%; top: 0; }
-ul.dropdown li:hover > ul 			{ visibility: visible; }
