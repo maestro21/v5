@@ -1,14 +1,18 @@
 <?php class users extends masterclass {
 
-	function extend() {
-		$this->tables = [
+	function gettables() {
+		return [
 			'user' => [
 				'fields' => [
-					'login' => [ 'string', 'string', ],
+					'login' => [ 'string', 'text', ],
 					'pass' 	=> [ 'string', 'text', ],
 				],
 			],
 		];	
+	}
+	
+	function extend() {
+		$this->description = 'Core module for user operations';	
 	}
 	
 	function login() {

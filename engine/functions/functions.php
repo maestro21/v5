@@ -1,4 +1,12 @@
 <?php
+
+
+function var2string($val) {
+	if(is_array($val)) $val = implode(',', $val);
+	return $val;	
+}
+
+
 function striprow($arr = array()){
 	if(!empty($arr))
 		foreach ($arr as $k=>$v){
@@ -96,8 +104,15 @@ function furl() {
 /** $_GLOBALS[$name] getters\setter **/
 function G($name, $value = NULL) {
 	global $_GLOBALS;
-	if($value != NULL) $_GLOBALS[$name] = $value;
+	if($value != NULL) {
+		$_GLOBALS[$name] = $value;
+		M('system')->set($name, $value);
+	}
 	return (isset($_GLOBALS[$name]) ? $_GLOBALS[$name] : NULL);
+}
+
+function delG($name) {
+	M('system')->delByName($name);
 }
 
 /* Formats text */
@@ -108,12 +123,15 @@ function T($text, $ucfirst = true) {
 	return $text;
 }
 
-function M($module) {
+function M($module) { 
 	global $masterclass;
 	$filename = 'www/modules/module.' . $module . '.php';
-	require_once('engine/class.masterclass.php');
-	if(file_exists($filename)) require_once($filename);
-	return new $module();
+	if(file_exists($filename)) {
+		require_once($filename);
+		require_once('engine/class.masterclass.php');
+		return new $module();
+	}
+	return FALSE;
 }
 
 /** function q() is defined directly in [dblanguage].php (i.e. mysql.php) **/
@@ -194,8 +212,12 @@ function setFilter(){
 } 
 
 function getLang(){
+	return getVar('lang', G('deflang'));
+}
+
+function getLabels(){
 	global $labels;
-	$tmp = file("lang/".getVar('lang',G('deflang','ua')).".txt");
+	$tmp = file("lang/".getVar('lang',G('deflang','en')).".txt");
 	foreach($tmp as $s){
 		$_s = split("=",$s); $label = $_s[0]; unset($_s[0]); $text = join("=",$_s);
 		$labels[trim($label)] = trim($text);
@@ -277,8 +299,9 @@ const WIDGET_CHECKBOX 	= 'checkbox';
 const WIDGET_RADIO 		= 'radio';
 const WIDGET_SELECT		= 'select';
 const WIDGET_MULTSELECT	= 'multselect';
-const WIDGET_DATE		= 'data';
+const WIDGET_DATE		= 'date';
 const WIDGET_CHECKBOXES	= 'checkboxes';
+const WIDGET_INFO		= 'info';
 
 const DB_TEXT 	= 'text';
 const DB_BLOB 	= 'blob';
@@ -295,11 +318,12 @@ function drawForm($fields,$data,$options){
 
 function fType($value, $type, $options = null, $fieldname = null) {
 	switch($type) {
+		case WIDGET_INFO:
 		case WIDGET_TEXT:
 		case WIDGET_TEXTAREA:
 		case WIDGET_HTML:
 		case WIDGET_BBCODE:
-			return $value;
+			return nl2br($value);
 		break;
 		
 		case WIDGET_PASS:
@@ -323,7 +347,7 @@ function fType($value, $type, $options = null, $fieldname = null) {
 		break;
 		
 		case WIDGET_DATE:
-			return fDate($value);
+			return fDateTime($value);
 		break;
 		
 		case WIDGET_CHECKBOXES:		
@@ -378,7 +402,7 @@ function sqlFormat($type, $value){
 
 
 function CheckLogged(){
-	global $_SESSION,$_POST,$_COOKIE;// inspect($_SESSION);
+	global $_SESSION,$_POST,$_COOKIE;//s inspect($_SESSION);
 	
 	if(isset($_SESSION['user'])) return true;
 	
@@ -408,12 +432,20 @@ function treeDraw($data, $tpl='', $eval = ''){
 	return $ret;
 }
 
-function fDate($date){
-	$dat = split(" ",$date);
-	$time = split(":",$dat[1]);
-	$date = split("-",$dat[0]);
-	
-	return "<i class='date'>".$date[2]." ".T('mon_'.(int)$date[1])." " .$date[0].", ".(int)$time[0].":".$time[1]."</i>";
+
+function fDate($date) {
+	$date = explode("-", $date);
+	return (int)$date[2] . " " . T('mon_'.(int)$date[1]) . " " .$date[0];
+}
+
+function fTime($time) {
+	$time = explode(":", $time);
+	return (int)$time[0] . ":" . $time[1];
+}
+
+function fDateTime($datetime){
+	$datetime = explode(" ", $datetime);	
+	return fDate($datetime[0]) . ", " . fTime($datetime[1]);
 }
 
 function getGlobals(){
@@ -421,7 +453,9 @@ function getGlobals(){
 	$_GLOBALS = cache('system');
 }
 
-
+function getlangs() {
+	return explode(',', G('langs'));
+}
 
 function superAdmin(){
 	global $_SESSION;
@@ -604,6 +638,15 @@ function cache($name, $data = NULL) {
 	}	
 }
 
+
+/** Clears cache **/
+function cacherm($name) {
+	$filename = 'data/cache/' . $name . '.php';
+	if(file_exists($filename)) {
+		unlink($filename);
+	}
+}
+
 /** checking if our engine is installed; `globals` and `modules` are the only crucial modules, both cached, so if no cache exists, engine is not installed **/
 function installationCheck() {
 	$modules = array('system', 'modules');
@@ -624,9 +667,9 @@ function hasRight($rightname) {
 function route() {
 	global $_SERVER, $_GET;
 	
-	$vars = explode('?', $_SERVER['REQUEST_URI']);
-	$path = mapping($vars[0]);
-	$path = trim(ltrim($path,'/' . HOST_FOLDER), '/');
+	$vars = explode('?', $_SERVER['REQUEST_URI']); 
+	$path = mapping($vars[0]); 
+	$path = ltrim(str_replace(HOST_FOLDER, '', $path), '/'); 
 	$_PATH = explode('/', $path);
 	return $_PATH;
 }
@@ -645,14 +688,22 @@ function dispatch() {
 	global $_PATH;
 	
 	$cl = $_PATH[0];
-	if($cl=='filter'){ setVar(@$_PATH[1], @$_PATH[2]); goBack(); die(); }
 	
-	if(!file_exists('www/modules/module.' . $cl . '.php')){
-		$cl = DEFMODULE;
-	}
+	if($cl=='filter'){ setFilterValue(@$_PATH[1], @$_PATH[2]); }
+	
 	$module = M($cl);
+	if(!$module) $module = M(G('defmodule'));
+	if(!$module) $module = DEFMODULE;
+	if(!$module) return FALSE;
+	
 	$module->output = $module->call(@$_PATH[1]);
 	return $module;	
+}
+
+function setFilterValue($filter = '', $value = '') {
+	setVar($filter, $value); 
+	goBack(); 
+	die();
 }
 
 function loadDB($dbname = '') {
@@ -688,4 +739,9 @@ function drawBtns($buttons, $params = array()) {
 		}
 	}
 	return $html;
+}
+
+
+function menu() {
+	return M('pages')->menu();
 }

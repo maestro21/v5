@@ -3,7 +3,7 @@
 <form method="POST" id="<?=$formid;?>" class="content">
 <input type="hidden" name="id" id="id" value="<?=$id;?>">
 	<table cellpadding=0 cellspacing=0>
-	<?php
+	<?php 
 		echo drawForm($fields, $data, $options); 
 	?>
 		<tr>

@@ -34,7 +34,7 @@ class mysql extends dbquery {
 	/** composing MySQL Select query **/
 	function composeSelectQuery(){ 
 		$this->rawQuery = 'SELECT ' . implode(",\r\n ", $this->parts['select'])  . "\r\n";
-		$this->rawQuery .= 'FROM ' . implode(',', $this->parts['from'])  . "\r\n";
+		$this->rawQuery .= 'FROM ' . var2string($this->parts['from'])  . "\r\n";
 		if(isset($this->parts['where']) && is_array($this->parts['where'])) {
 			$this->rawQuery .= 'WHERE 1 '  . "\r\n";
 			foreach($this->parts['where'] as $where) {
@@ -48,8 +48,8 @@ class mysql extends dbquery {
 				}
 			}
 		}
-		if(isset($this->parts['group']) && is_array($this->parts['group'])) {
-			$this->rawQuery .= 'GROUP BY ' . implode(',', $this->parts['group'])  . "\r\n";
+		if(isset($this->parts['group'])) {
+			$this->rawQuery .= 'GROUP BY ' . var2string($this->parts['group'])  . "\r\n";
 		}
 		if(isset($this->parts['having']) && is_array($this->parts['having'])) {
 			$this->rawQuery .= 'HAVING 1 '  . "\r\n";
@@ -57,11 +57,11 @@ class mysql extends dbquery {
 				$this->rawQuery .= ' ' . $having['op'] . ' ' . $having['query']  . "\r\n";
 			}
 		}
-		if(isset($this->parts['order']) && is_array($this->parts['order'])) {
-			$this->rawQuery .= 'ORDER BY ' . implode(',', $this->parts['order'])  . "\r\n";
+		if(isset($this->parts['order'])) {
+			$this->rawQuery .= 'ORDER BY ' . var2string($this->parts['order'])  . "\r\n";
 		}
-		if(isset($this->parts['limit']) && is_array($this->parts['limit'])) {
-			$this->rawQuery .= 'LIMIT ' . implode(',', $this->parts['limit'])  . "\r\n";
+		if(isset($this->parts['limit'])) {
+			$this->rawQuery .= 'LIMIT ' . var2string($this->parts['limit'])  . "\r\n";
 		}
 		return $this;
 	}
@@ -75,11 +75,11 @@ class mysql extends dbquery {
 				$this->rawQuery .= ' ' . $where['op'] . ' ' . $where['query']  . "\r\n";
 			}
 		}
-		if(isset($this->parts['order']) && is_array($this->parts['order'])) {
-			$this->rawQuery .= 'ORDER BY ' . implode(',', $this->parts['order'])  . "\r\n";
+		if(isset($this->parts['order'])) {
+			$this->rawQuery .= 'ORDER BY ' . var2string($this->parts['order'])  . "\r\n";
 		}
-		if(isset($this->parts['limit']) && is_array($this->parts['limit'])) {
-			$this->rawQuery .= 'LIMIT ' . implode(',', $this->parts['limit'])  . "\r\n";
+		if(isset($this->parts['limit'])) {
+			$this->rawQuery .= 'LIMIT ' . var2string($this->parts['limit'])  . "\r\n";
 		}
 		return $this;
 	}
@@ -101,11 +101,11 @@ class mysql extends dbquery {
 					$this->rawQuery .= "\r\n " . $where['op'] . ' ' . $where['query'];
 				}
 			}
-			if(isset($this->parts['order']) && is_array($this->parts['order'])) {
-				$this->rawQuery .= 'ORDER BY ' . implode(',', $this->parts['order'])  . "\r\n";
+			if(isset($this->parts['order'])) {
+				$this->rawQuery .= 'ORDER BY ' . var2string($this->parts['order'])  . "\r\n";
 			}
-			if(isset($this->parts['limit']) && is_array($this->parts['limit'])) {
-				$this->rawQuery .= 'LIMIT ' . implode(',', $this->parts['limit'])  . "\r\n";
+			if(isset($this->parts['limit'])) {
+				$this->rawQuery .= 'LIMIT ' . var2string($this->parts['limit'])  . "\r\n";
 			}
 		}
 	}
@@ -124,7 +124,7 @@ class mysql extends dbquery {
 	
 	/** running query **/	
 	function run($type = NULL, $debug = 0) {
-		$this->compose();
+		$this->compose();				
 		if(NULL == $type) $type = $this->requestType; 
 		$result = FALSE; 
 		switch($type) {
@@ -133,7 +133,12 @@ class mysql extends dbquery {
 			case self::DBCOL : $result = DBcol($this->rawQuery,   $debug); break;
 			case self::DBALL : $result = DBall($this->rawQuery,   $debug); break; 
 			case self::DBQUERY : $result = DBquery($this->rawQuery, $debug); break; 			
-		} 
+		} 			
+		if($debug) { 
+			inspect($this->rawQuery);
+			inspect($type);
+			inspect($result);
+		}		
 		return $result;
 	}
 }

@@ -1,4 +1,9 @@
 <?php 
+define('DBCELL', 1); 
+define('DBROW', 2); 
+define('DBCOL', 3); 
+define('DBALL', 4); 
+define('DBQUERY', 5);
 
 class DBquery {
 
@@ -15,12 +20,19 @@ class DBquery {
 	const DBQUERY = 5;
 	
 	
-	function __construct($table = '') {
-		$this->setTable($table);
+	function __construct($table = NULL) {
+		if($table != NULL) {
+			$this->setTable($table);
+		}
 	}
 	
 	function setTable($table) {
-		$this->table = $table;
+		if(is_object($table)) {
+			$this->table = $table->className;
+		} else {
+			$this->table = $table;
+		}
+		$this->from($this->table);
 	}
 	
 	function getTable() {
@@ -29,9 +41,10 @@ class DBquery {
 	
 	/** types **/
 	
-	function select($query = '*', $shortname = '') {
+	function select($query = '*', $shortname = '', $requestType = self::DBALL) {
 		$this->clear();
 		$this->queryType = 'select';	
+		$this->requestType = $requestType;
 		//if($query != '*') $query = str_replace('.','`.`',"`$query`");	
 		if ($shortname == '')
 			$this->parts['select'][] = $query;
@@ -42,20 +55,23 @@ class DBquery {
 	
 	function delete() {
 		$this->clear();
-		$this->queryType = 'delete';
+		$this->queryType = 'delete';		
+		$this->requestType = self::DBQUERY;
 		return $this;
 	}
 	
 	function update($table) {
 		$this->clear();
-		$this->queryType = 'update';
+		$this->queryType = 'update';		
+		$this->requestType = self::DBQUERY;
 		$this->parts['update'] = "`$table`";
 		return $this;
 	}
 	
 	function insert($ignore = FALSE) {
 		$this->clear();
-		$this->queryType = 'insert';
+		$this->queryType = 'insert';		
+		$this->requestType = self::DBQUERY;
 		$this->parts['insert'] = 'INSERT';
 		if($ignore) $this->parts['insert'] .= ' IGNORE';
 		return $this;
@@ -64,6 +80,7 @@ class DBquery {
 	function replace($table = null) {
 		$this->clear();
 		$this->queryType = 'insert';
+		$this->requestType = self::DBQUERY;
 		$this->parts['insert'] = 'REPLACE';
 		return $this;
 	}
@@ -154,22 +171,21 @@ class DBquery {
 	/** default queries **/
 	
 	function qget($id, $query = '*') {
-		$this->requestType = self::DBROW;
 		$id = (int) $id;
 		if($id > 0) {		
 			$this
 				->select($query)
 				->from($this->table)
-				->where("id = $id");
-				 
+				->where(qEq('id', $id));
+			
+			$this->requestType = self::DBROW;	 
 		}
 		return $this;
 	}
 	
 	function qcount() {
-		$this->requestType = self::DBCELL;
 		$this
-			->select(dbCount('id'))
+			->select(qCount($this->table . '.id'), '', self::DBCELL)
 			->from($this->table);
 			 
 		return $this;	 
@@ -177,9 +193,8 @@ class DBquery {
 	
 	
 	function qlist($query = '*', $page = 0, $perpage = 10) {
-		$this->requestType = self::DBALL;
 		$this
-			->select($query)
+			->select($query, '', self::DBALL)
 			->from($this->table)
 			->limit($page * $perpage, ($page + 1) * $perpage);
 		
@@ -187,13 +202,12 @@ class DBquery {
 	}
 	
 	function qdel($id) {
-		$this->requestType = self::DBQUERY;
 		$id = (int) $id;
 		if($id > 0) {
 			$this
 				->delete()
 				->from($this->table)
-				->where("id = $id");
+				->where(qEq('id', $id));
 				 
 		}
 		return $this;

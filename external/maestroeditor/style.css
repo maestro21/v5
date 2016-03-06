@@ -1,0 +1,270 @@
+.MaestroEditor {
+	width:1000px;
+	margin:0 auto;
+}
+
+	.MaestroEditor .toolbar,
+	.MaestroEditor .area {
+		width:1000px;
+		border:1px gray solid;
+	}
+
+	.MaestroEditor .area {
+		height:500px;
+		padding:0px;
+		overflow:scroll;
+	}
+
+	.MaestroEditor .headers {
+		position:relative;
+	}
+	.MaestroEditor .headerlist { 
+		width: 140px; 
+	}
+
+.MaestroEditor .dd {
+	position:absolute;
+	background-color:white;
+	border:1px gray solid;
+	width:auto !Important;
+	height: auto !Important;
+}
+
+
+.MaestroEditor .divlist {
+	position:absolute;
+	background-color:white;
+	width: 140px;
+}
+
+.MaestroEditor .divlist div {
+	display:block !important;
+	width: 120px !important;
+	height:20px !important;
+	padding:5px !important;
+}
+
+
+.MaestroEditor .headerlist a {
+	text-decoration:none;
+	color:black;
+}	
+
+.MaestroEditor .toolbar
+{
+	background-color:#eee;
+}
+
+.MaestroEditor .toolbar div {
+	display: inline-block;
+	margin: 1px;
+	padding: 0px;
+	border: none;
+	background-color: transparent;
+}
+.MaestroEditor .toolbar .group {
+	padding:10px;
+	display:table-cell;
+}
+
+.MaestroEditor .toolbar .group div{
+	width:20px;
+	display:inline-block;
+	margin:1px;
+	
+  cursor:pointer;
+  padding-top: 2px;
+  height: 18px;
+}
+
+.MaestroEditor .toolbar .group div:hover {
+	color:black;
+}
+
+	.MaestroEditor .btn-2text,
+	.MaestroEditor .btn-2html,
+	.MaestroEditor .btn-font,
+	.MaestroEditor .btn-quote,
+	.MaestroEditor .btn-line,
+	.MaestroEditor .btn-ul,
+	.MaestroEditor .btn-ol,
+	.MaestroEditor .btn-li,
+	.MaestroEditor .btn-table,
+	.MaestroEditor .btn-thead,
+	.MaestroEditor .btn-tr,
+	.MaestroEditor .btn-td,
+	.MaestroEditor .btn-link,
+	.MaestroEditor .btn-img {
+		background-image:url('<?php echo $path2Icons;?>icons.png');
+		background-repeat:no-repeat;
+	}
+	
+	.MaestroEditor .btn-2text {
+		background-position-x:-20px;
+	}
+	.MaestroEditor .btn-2html	{
+		background-position-x:0px;
+	}	
+	.MaestroEditor .btn-font{
+		background-position-x:-40px;
+	}
+	.MaestroEditor .btn-quote{
+		background-position-x:-60px;
+	}
+	.MaestroEditor .btn-line{
+		background-position-x:-80px;
+	}
+	.MaestroEditor .btn-ul{
+		background-position-x:-100px;
+	}
+	.MaestroEditor .btn-ol{
+		background-position-x:-120px;
+	}
+	.MaestroEditor .btn-li{
+		background-position-x:-140px;
+	}
+	.MaestroEditor .btn-table{
+		background-position-x:-160px;
+	}
+	.MaestroEditor .btn-thead{
+		background-position-x:-180px;
+	}
+	.MaestroEditor .btn-tr{
+		background-position-x:-200px;
+	}
+	.MaestroEditor .btn-td{
+		background-position-x:-220px;
+	}
+	.MaestroEditor .btn-link{
+		background-position-x:-240px;
+	}
+	.MaestroEditor .btn-img{
+		background-position-x:-260px;
+	}
+	
+sup,
+sub {
+	font-size:8px;
+}	
+	
+/** MAESTRO THEME **
+.MaestroEditor .toolbar {
+	background-color: black !important;
+}
+
+.MaestroEditor .toolbar,
+.MaestroEditor .area {
+	border-color:black !important;
+}
+
+.MaestroEditor .toolbar .group div{
+	background-color:white !important;
+	border-radius:3px;
+}
+
+.MaestroEditor .toolbar .group .btn-text,
+.MaestroEditor .toolbar .group .btn-html,
+.MaestroEditor .toolbar .group .btn-link,
+.MaestroEditor .toolbar .group .btn-img {
+	background-color: black;
+}
+
+
+/**/
+
+
+
+
+.hidden{
+	display:none !important;
+}
+
+.left {
+	text-align:left !important;
+}
+.right {
+	text-align:right !important;
+}
+.center {
+	text-align:center !important;
+}
+
+
+/** divs **/
+
+
+
+
+
+.done {
+	border: 1px darkgreen solid  !important;
+	background-color: lightgreen !important;
+}
+
+.not {
+	border: 1px darkred solid !important;
+	background-color: pink !important;
+}
+
+.actual {
+	border: 1px gold solid !important;
+	background-color: #FFFF99 !important;
+}
+
+.far {
+	border: 1px darkgray solid !important;
+	background-color: lightgray !important;
+}
+.done,
+.actual,
+.far,
+.not {
+	padding:10px !important;
+	margin:10px !important;
+	font-size:12px !important;
+}
+
+.actual b,
+.not b,
+.far b,
+.done b{
+	font-size:14px !important;
+}
+
+.rel {
+	position:relative;
+	display:inline-block;
+}
+
+.videotext {
+position: relative;
+bottom: 30px;
+background-color: rgba(0, 0, 0, 0.7) !important;
+color: white;
+overflow: hidden;
+width: 444px;
+height: 20px;
+border-bottom-left-radius: 8px;
+border-bottom-right-radius: 8px;
+padding: 5px;
+font-weight: normal;
+font-family: arial;
+}
+
+.videoitem {
+display: inline-block;
+padding: 10px;
+height: 300px;
+background: none !important;
+}
+
+hr {
+	color:black;
+	background-color:black;
+	height:1px;
+	border:0;
+}
+
+h1,h2,h3,h4,h5,h6 {
+	margin:0;
+}

@@ -127,32 +127,40 @@ function DBfields($sql, $echo = false){ //returns fields
 }
 
 
-/** DB operators **/
-function dbCount($field = '*', $as = ''){
+/** Query operators **/
+function qCount($field = '*', $as = ''){
 	return "COUNT({$field})" . ($as != '' ? ' AS ' . $as : '');
 }
 /* type : 1 - %var 2 - var% 3 - %var% */
-function dbLike($value, $type = 3) {
+function qLike($value, $type = 3) {
 	if($type == (1 or 3)) $value = "%" . $value;
 	if($type == (2 or 3)) $value .= "%";
 	return " LIKE '$value' ";
 }
 
-function dbConcat($data) {
+function qConcat($data) {
 	return " CONCAT (" . implode(',',$data) . ") ";
 }
 
-function dbBetween($from, $to) {
+function qBetween($from, $to) {
 	return " BETWEEN $from AND $to ";
 }
 
-function dbEq($key, $value) {
+function qEq($key, $value) {
 	return "`$key` = '$value'";
 }
 
 
 
 /** DB schema functions **/
+function uninstall($tables) {
+	foreach($tables as $table_name => $table) {
+		/** droping first; it's new install, so old table means to be dropped if exists **/
+		$sql = "DROP TABLE IF EXISTS `$table_name`"; DBquery($sql);
+	}
+}
+
+
 function install($tables) {
 	/** running through all tables **/ 
 	foreach($tables as $table_name => $table) {
@@ -251,7 +259,7 @@ function update($update) {
 						case 'text': 	$type = ' TEXT'; break;
 						case 'int' : 	$type = ' INT DEFAULT 0'; break;
 						case 'date' :
-						case 'time' : 	$type = ' DATETIME'; break;
+						case 'time' : 	$type = ' DATETIME DEFAULT CURRENT_TIMESTAMP;'; break;
 						case 'float' : 	$type = ' FLOAT DEFAULT 0'; break;	
 						case 'unique':  $type = 'UNIQUE'; break;
 						case 'index':	$type = 'INDEX'; break;

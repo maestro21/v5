@@ -55,6 +55,7 @@ h1 img {
 
 h1, h2 {
 	font-family: Georgia;
+	text-transform: capitalize;
 }	
 
 h2 {
@@ -66,6 +67,7 @@ h2 {
 a {
  color: darkgreen;	
  font-weight:bold;
+ cursor:pointer;
 }
 
 a:hover{
@@ -96,6 +98,7 @@ a:hover{
 		display:table-cell;
 		text-decoration:none;
 		font-weight:bold;
+		background-color:#5c9b0d;
 	}
 	
 	.menu a:hover{
@@ -180,6 +183,9 @@ a:hover{
 	color: white;
 	padding:5px;
 	height:20px;
+	box-shadow: 0 2px 5px rgba(0,0,0,0.5); 
+	position: relative;
+z-index: 10;
 }	
 
 	.adminpanel a{
@@ -193,6 +199,12 @@ a:hover{
 	.adminpanel .dropdown{
 		padding:0px;
 		margin:0px;
+		list-style:none;
+	}
+	
+	.adminpanel .dropdown ul {
+		list-style:none;
+		background-color:black;
 	}
 
 .content table td {
@@ -205,6 +217,12 @@ table input[type=text]{
 
 thead td {
 	font-weight:bold;
+}
+table input.date {
+	width:15px;
+}
+table input.date.year {
+	width:40px;
 }
 	
 .label {
@@ -236,12 +254,21 @@ thead td {
 	z-index:+1;
 }
 .dropdownmenu a{
+	cursor:pointer;
 	display:block;
 	padding:2px 5px;
 }
 .dropdownmenu a:hover{
 	background-color:white;
 	color:black;
+}
+
+.hover {
+	cursor:pointer;
+}
+
+.hover .dropdownmenu {
+	display: block;
 }
 
 .ln {
@@ -562,6 +589,22 @@ text-decoration:none;
 	color:white;
 }
 
+.btn-active {
+	background-color:blue;
+	color:white;
+}
+
+.btn-ok {
+	background-color:green;
+	color:white;
+}
+
+.btn-del {
+	background-color:darkred;
+	color:white;
+}
+
+
 .hidden{
 	display:hidden;
 }
@@ -573,3 +616,129 @@ form {
 }
 
 
+/* Module modules CSS */
+.wrap-modules div {
+	text-align: left;
+	margin:10px 0px;
+	font-size:12px;
+}
+
+.wrap-modules .ok {
+	padding:0px 10px;
+}
+
+.wrap-modules div h2 {
+	margin:0px;
+	margin-bottom:5px;
+}
+.wrap-modules div h2 a:hover {
+	color:black;
+	background-color:transparent;
+	text-decoration:underline;
+}
+.wrap-modules div h2 a {
+	color:black;
+	text-decoration:none;
+}
+
+
+
+.wrap-modules div  div {
+	display:table-cell;
+	vertical-align:middle;
+}
+.wrap-modules div  div .btn {
+	width:70px;
+}
+.wrap-modules .info {
+	width: 630px;
+	padding:10px;
+}
+
+.wrap-modules .status {
+	width:100px;
+	text-transform:capitalize;
+	font-weight:bold;
+}
+
+
+/** modal **/
+
+.modal {
+  background-color: white;
+  border-radius: 10px;
+  display: none;
+  max-height: calc(100% - 100px);
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  right: auto;
+  bottom: auto;
+  transform: translate(-50%, -50%);
+  z-index:1000;
+  padding:10px;
+  overflow:auto;
+}
+.modal-body  {
+	padding:10px;
+	height: 100%;
+    overflow: auto;
+}
+
+.modal-overlay {
+  background-color: rgba(0, 0, 0, 0.5);
+  display: none;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 980;
+}
+.modal-close {
+	cursor:pointer;
+	float:right;
+}
+
+	/* DROPDOWN */
+	
+	/* NECESSARY THINGS */
+	
+	
+	.dropdown {
+		display: inline-block;
+	}
+	
+	.dropdown ul {
+		float: left;		
+		margin:0;
+		padding: 0px;
+	}	
+	.dropdown li {
+		float: left;
+		position: relative;		
+		list-style: none;
+		margin:0;
+	}
+	.dropdown a {
+		display: block;
+	}
+	.dropdown ul ul {
+		position: absolute;
+		left: 0;
+		top: 100%;
+		visibility: hidden;
+		opacity: 0;
+		box-shadow: 0 2px 5px rgba(0,0,0,0.5); 
+	}
+	.dropdown ul ul ul {
+		left: 100%;
+		top: 0;
+	}
+	.dropdown li:hover > ul {
+		visibility: visible;
+		opacity: 1;
+	}
+	
+
+	

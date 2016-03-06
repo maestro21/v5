@@ -1,4 +1,5 @@
-<?php 
+<script language="javascript" src="<?=BASE_URL;?>external/nicEdit-latest.js"></script>
+<?php  
 $prefix = 'form';
 foreach($fields as $key => $field) { 
 
@@ -7,10 +8,22 @@ $value = (isset($data[$key]) ? $data[$key] : "");
 ?>
 
 <tr>
+	<?php if($widget != WIDGET_HIDDEN) { ?>
 	<td><?php echo T($key);?></td>
+	<?php } ?>
 	<td> 
 	<?php switch($widget) { 
 
+		case WIDGET_INFO: ?>
+			<?php echo $value;?>
+			<input type="hidden"
+				value="<?php echo $value;?>" 
+				name="<?php echo $prefix;?>[<?php echo $key;?>]" 
+				id="<?php echo $key;?>" />
+		
+		
+		<?php break;
+		
 		case WIDGET_TEXT: ?>
 			<input type="text" 
 				value="<?php echo $value;?>" 
@@ -24,14 +37,28 @@ $value = (isset($data[$key]) ? $data[$key] : "");
 				id="<?php echo $key;?>"><?php echo $value;?></textarea>
 		<?php break;
 		
-		case WIDGET_HTML: ?>
+		case WIDGET_HTML: 
+			$path = BASE_URL . 'external/maestroeditor/';
+			include('external/maestroeditor/editor.php');
+			maestroeditor(				
+				$prefix . '[' . $key . ']',
+				'test',
+				$value,
+				BASE_URL . 'external/maestroeditor/', 
+				''
+			);
+			
+		BREAK; /*?>
 			<textarea cols="100" rows="20" 
 				name="<?php echo $prefix;?>[<?php echo $key;?>]" 
 				id="<?php echo $key;?>"><?php echo $value;?></textarea>
 			<script type="text/javascript">
-				CKEDITOR.replace( "<?php echo $key;?>" );
+				<!--CKEDITOR.replace( "<?php echo $key;?>" );-->
+				bkLib.onDomLoaded(function() {
+					new nicEditor({fullPanel : true,maxHeight : 600}).panelInstance('<?php echo $key;?>');
+				});
 			</script>				
-		<?php break;			
+		<?php break;	*/		
 		
 		case WIDGET_BBCODE: ?>
 			<textarea cols="100" rows="15" 
@@ -63,7 +90,7 @@ $value = (isset($data[$key]) ? $data[$key] : "");
 			<input type="hidden"
 				value="<?php echo $value;?>" 
 				name="<?php echo $prefix;?>[<?php echo $key;?>]" 
-				id="<?php echo $key;?>" />";
+				id="<?php echo $key;?>" />
 		<?php break;
 		
 		case WIDGET_CHECKBOX: ?>
@@ -111,21 +138,46 @@ $value = (isset($data[$key]) ? $data[$key] : "");
 			<?php } ?>
 			</select>
 		<?php break;     
-
 		case WIDGET_DATE: 
 			preg_match_all("/[[:digit:]]{2,4}/", $value, $matches);	
 			$nums = $matches[0]; ?>
-			<input type="text" class="date year" name="<?php echo $prefix;?>[<?php echo $key;?>][y]" value="" 
-				<?php if(isset($nums[0])?$nums[0]:date("Y"));?> size="4">-
+			<input type="text" class="date year" name="<?php echo $prefix;?>[<?php echo $key;?>][y]" 
+				value="<?php echo (isset($nums[0])?$nums[0]:date("Y"));?>" size="4">-
 			<select name="<?php echo $prefix;?>[<?php echo $key;?>][m]>">
 				<?php if(!isset($nums[1])) $nums[1] = date("m");
 				for($i=1;$i<13;$i++) { ?>
-					<option value="$i"".($i==@$nums[1]?" selected="selected"":"")."">".T("mon_$i")
+					<option value="<?php echo $i;;?>"<?php if($i==@$nums[1]) echo ' selected="selected"';?>><?php echo T("mon_$i");?>
 				</option>
 				<?php } ?>	
-			</select>
-					
-			<input type="text" class="date" name=<?php echo $prefix;?>[<?php echo $key;?>][d] value="<?=(isset($nums[2])?$nums[2]:date("d"));?>" size=2> &nbsp&nbsp&nbsp";
+			</select>					
+			<input type="text" class="date" name=<?php echo $prefix;?>[<?php echo $key;?>][d] value="<?=(isset($nums[2])?$nums[2]:date("d"));?>" size=2> (YYYY-MM-DD)
+		
+		<?php break;
+		
+		
+		case WIDGET_TIME: 
+			preg_match_all("/[[:digit:]]{2,4}/", $value, $matches);	
+			$nums = $matches[0]; ?>
+			<input type="text" class="date" name=<?php echo $prefix;?>[<?php echo $key;?>][h] value="<?=(isset($nums[0])?$nums[0]:date("G"));?>" size=2>:
+			<input type="text" class="date" name=<?php echo $prefix;?>[<?php echo $key;?>][mi] value="<?=(isset($nums[1])?$nums[1]:date("i"));?>" size=2>:
+			<input type="text" class="date" name=<?php echo $prefix;?>[<?php echo $key;?>][s] value="<?=(isset($nums[2])?$nums[2]:date("s"));?>" size=2>(HH:MM:SS)
+		
+		<?php break;
+		
+		
+		case WIDGET_DATETIME: 
+			preg_match_all("/[[:digit:]]{2,4}/", $value, $matches);	
+			$nums = $matches[0]; ?>
+			<input type="text" class="date year" name="<?php echo $prefix;?>[<?php echo $key;?>][y]" 
+				value="<?php echo (isset($nums[0])?$nums[0]:date("Y"));?>" size="4">-
+			<select name="<?php echo $prefix;?>[<?php echo $key;?>][m]>">
+				<?php if(!isset($nums[1])) $nums[1] = date("m");
+				for($i=1;$i<13;$i++) { ?>
+					<option value="<?php echo $i;;?>"<?php if($i==@$nums[1]) echo ' selected="selected"';?>><?php echo T("mon_$i");?>
+				</option>
+				<?php } ?>	
+			</select>					
+			<input type="text" class="date" name=<?php echo $prefix;?>[<?php echo $key;?>][d] value="<?=(isset($nums[2])?$nums[2]:date("d"));?>" size=2> (YYYY-MM-DD) &nbsp&nbsp&nbsp
 			<input type="text" class="date" name=<?php echo $prefix;?>[<?php echo $key;?>][h] value="<?=(isset($nums[3])?$nums[3]:date("G"));?>" size=2>:
 			<input type="text" class="date" name=<?php echo $prefix;?>[<?php echo $key;?>][mi] value="<?=(isset($nums[4])?$nums[4]:date("i"));?>" size=2>:
 			<input type="text" class="date" name=<?php echo $prefix;?>[<?php echo $key;?>][s] value="<?=(isset($nums[5])?$nums[5]:date("s"));?>" size=2>(HH:MM:SS)
