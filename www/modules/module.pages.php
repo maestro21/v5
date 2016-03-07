@@ -116,6 +116,13 @@
 					->from($this->className)
 					->where("fullurl='$url'")
 					->run(DBROW);
+		/* if empty url then get top page of default language */			
+		if(empty($page)) {
+			$page = q()	->select()
+				->from($this->className)
+				->where(qeq('fullurl',getLang()))
+				->run(DBROW);
+		}	
 		return $page;
 	
 	}
